@@ -13,10 +13,35 @@ connectDB(process.env.MONGO_URI);
 // Middleware
 app.use(morgan('dev'));
 app.use(express.json({ limit: '10mb' })); // Increased limit for image uploads
-app.use(cors({ 
-  origin: ['http://localhost:8080', 'http://localhost:5173', 'http://localhost:5174'],
-  credentials: true 
-}));
+
+// Manual CORS middleware for better control
+app.use((req, res, next) => {
+  const allowedOrigins = [
+    'http://localhost:8080',
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://localhost:8082'
+  ];
+  
+  const origin = req.headers.origin;
+  console.log('CORS middleware - Origin:', origin, 'Method:', req.method);
+  
+  if (allowedOrigins.includes(origin) || !origin) {
+    res.header('Access-Control-Allow-Origin', origin || '*');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+    console.log('CORS headers set for origin:', origin);
+  }
+  
+  // Handle preflight
+  if (req.method === 'OPTIONS') {
+    console.log('Handling OPTIONS preflight');
+    return res.sendStatus(204);
+  }
+  
+  next();
+});
 
 // Routes
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));

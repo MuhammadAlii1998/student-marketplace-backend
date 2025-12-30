@@ -7,6 +7,7 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, required: true },
   avatar: { type: String, default: '' },
   university: { type: String, default: 'ESILV' },
+  studentId: { type: String, required: true, unique: true },
   rating: { type: Number, default: 0 },
   reviews: { type: Number, default: 0 },
   favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],

@@ -12,12 +12,32 @@ function generateToken(userId) {
 // Register new user
 async function register(req, res) {
   try {
-    const { name, email, password, university } = req.body;
+    const { name, email, password, university, studentId } = req.body;
 
-    // Check if user exists
+    // Validate ESILV email domain
+    if (!email.endsWith('@edu.devinci.fr') && !email.endsWith('@devinci.fr')) {
+      return res.status(400).json({ 
+        message: 'Invalid email domain. Please use your ESILV email (@edu.devinci.fr or @devinci.fr)' 
+      });
+    }
+
+    // Validate student ID format (7 digits)
+    if (!studentId || !/^\d{7}$/.test(studentId)) {
+      return res.status(400).json({ 
+        message: 'Invalid student ID. Must be exactly 7 digits (e.g., 7277000)' 
+      });
+    }
+
+    // Check if user exists by email
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: 'Email already registered' });
+    }
+
+    // Check if student ID already exists
+    const existingStudentId = await User.findOne({ studentId });
+    if (existingStudentId) {
+      return res.status(400).json({ message: 'Student ID already registered' });
     }
 
     // Create user
@@ -25,7 +45,8 @@ async function register(req, res) {
       name,
       email,
       password,
-      university: university || 'ESILV'
+      university: university || 'ESILV',
+      studentId
     });
     await user.save();
 
