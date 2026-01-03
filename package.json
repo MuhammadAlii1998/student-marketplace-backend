@@ -10,6 +10,7 @@
     "test-api": "node src/test/endpointsTest.js",
     "test-email": "node src/test/emailVerificationTest.js",
     "check-email": "node src/test/checkEmailConfig.js",
+    "test-gmail": "node src/test/testGmailSetup.js",
     "create-indexes": "node src/scripts/createIndexes.js"
   },
   "author": "",

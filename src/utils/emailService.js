@@ -2,20 +2,30 @@ const nodemailer = require('nodemailer');
 
 // Create transporter
 const createTransporter = () => {
-  // For development, you can use services like:
-  // - Gmail (requires app password)
-  // - SendGrid, Mailgun, AWS SES for production
-  // - Mailtrap for testing
+  // Gmail configuration with App Password
+  // Make sure to enable 2-Step Verification and generate an App Password
   
-  return nodemailer.createTransport({
+  const config = {
     host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-    port: process.env.EMAIL_PORT || 587,
-    secure: false, // true for 465, false for other ports
+    port: parseInt(process.env.EMAIL_PORT) || 587,
+    secure: false, // true for 465, false for 587
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASSWORD
+    },
+    tls: {
+      rejectUnauthorized: true
     }
+  };
+
+  console.log('📧 Email Config:', {
+    host: config.host,
+    port: config.port,
+    user: config.auth.user,
+    secure: config.secure
   });
+
+  return nodemailer.createTransport(config);
 };
 
 // Send verification email
@@ -26,38 +36,69 @@ async function sendVerificationEmail(email, name, verificationToken) {
     const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify-email?token=${verificationToken}`;
     
     const mailOptions = {
-      from: `"Student Marketplace" <${process.env.EMAIL_USER}>`,
+      from: `"ESILV Marketplace" <${process.env.EMAIL_USER}>`,
       to: email,
-      subject: 'Verify Your Email - Student Marketplace',
+      subject: 'Verify Your Email - ESILV Marketplace',
       html: `
         <!DOCTYPE html>
         <html>
         <head>
           <style>
             body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background-color: #4CAF50; color: white; padding: 20px; text-align: center; }
-            .content { background-color: #f9f9f9; padding: 30px; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff; }
+            .header { 
+              background-color: #c70071; 
+              color: white; 
+              padding: 30px 20px; 
+              text-align: center;
+              border-radius: 5px 5px 0 0;
+            }
+            .logo-container { 
+              background-color: white;
+              padding: 15px;
+              border-radius: 5px;
+              display: inline-block;
+              margin-bottom: 15px;
+            }
+            .logo-text {
+              font-size: 28px;
+              font-weight: bold;
+              color: #c70071;
+              margin: 0;
+              letter-spacing: 2px;
+            }
+            .content { background-color: #f9f9f9; padding: 30px; border-radius: 0 0 5px 5px; }
             .button { 
               display: inline-block; 
               padding: 12px 30px; 
               background-color: #c70071; 
-              color: white; 
+              color: white !important; 
               text-decoration: none; 
               border-radius: 5px; 
               margin: 20px 0;
+              font-weight: bold;
             }
-            .footer { text-align: center; padding: 20px; font-size: 12px; color: #666; }
+            .footer { 
+              text-align: center; 
+              padding: 20px; 
+              font-size: 12px; 
+              color: #666; 
+              border-top: 1px solid #ddd;
+              margin-top: 20px;
+            }
           </style>
         </head>
         <body>
           <div class="container">
             <div class="header">
-              <h1>Welcome to Student Marketplace!</h1>
+              <div class="logo-container">
+                <h1 class="logo-text">ESILV</h1>
+              </div>
+              <h1 style="margin: 0;">Welcome to ESILV Marketplace!</h1>
             </div>
             <div class="content">
               <h2>Hi ${name},</h2>
-              <p>Thank you for registering with Student Marketplace! To complete your registration, please verify your email address.</p>
+              <p>Thank you for registering with ESILV Marketplace! To complete your registration, please verify your email address.</p>
               <p>Click the button below to verify your email:</p>
               <div style="text-align: center;">
                 <a href="${verificationUrl}" class="button">Verify Email</a>
@@ -68,7 +109,7 @@ async function sendVerificationEmail(email, name, verificationToken) {
               <p>If you didn't create an account, please ignore this email.</p>
             </div>
             <div class="footer">
-              <p>© ${new Date().getFullYear()} Student Marketplace. All rights reserved.</p>
+              <p>© ${new Date().getFullYear()} ESILV Marketplace. All rights reserved.</p>
               <p>ESILV - École Supérieure d'Ingénieurs Léonard de Vinci</p>
             </div>
           </div>
@@ -92,40 +133,79 @@ async function sendWelcomeEmail(email, name) {
     const transporter = createTransporter();
     
     const mailOptions = {
-      from: `"Student Marketplace" <${process.env.EMAIL_USER}>`,
+      from: `"ESILV Marketplace" <${process.env.EMAIL_USER}>`,
       to: email,
-      subject: 'Welcome to Student Marketplace!',
+      subject: 'Welcome to ESILV Marketplace!',
       html: `
         <!DOCTYPE html>
         <html>
         <head>
           <style>
             body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background-color: #c70071; color: white; padding: 20px; text-align: center; }
-            .content { background-color: #f9f9f9; padding: 30px; }
-            .footer { text-align: center; padding: 20px; font-size: 12px; color: #666; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff; }
+            .header { 
+              background-color: #c70071; 
+              color: white; 
+              padding: 30px 20px; 
+              text-align: center;
+              border-radius: 5px 5px 0 0;
+            }
+            .logo-container { 
+              background-color: white;
+              padding: 15px;
+              border-radius: 5px;
+              display: inline-block;
+              margin-bottom: 15px;
+            }
+            .logo-text {
+              font-size: 28px;
+              font-weight: bold;
+              color: #c70071;
+              margin: 0;
+              letter-spacing: 2px;
+            }
+            .content { background-color: #f9f9f9; padding: 30px; border-radius: 0 0 5px 5px; }
+            .feature-list { 
+              background-color: white; 
+              padding: 20px; 
+              border-radius: 5px;
+              margin: 20px 0;
+            }
+            .footer { 
+              text-align: center; 
+              padding: 20px; 
+              font-size: 12px; 
+              color: #666; 
+              border-top: 1px solid #ddd;
+              margin-top: 20px;
+            }
           </style>
         </head>
         <body>
           <div class="container">
             <div class="header">
-              <h1>🎉 Email Verified Successfully!</h1>
+              <div class="logo-container">
+                <h1 class="logo-text">ESILV</h1>
+              </div>
+              <h1 style="margin: 0;">🎉 Email Verified Successfully!</h1>
             </div>
             <div class="content">
               <h2>Hi ${name},</h2>
               <p>Congratulations! Your email has been successfully verified.</p>
-              <p>You can now enjoy all the features of Student Marketplace:</p>
-              <ul>
-                <li>Buy and sell items within the ESILV community</li>
-                <li>Create and manage your product listings</li>
-                <li>Connect with other students</li>
-                <li>Add items to your favorites</li>
-              </ul>
+              <div class="feature-list">
+                <p>You can now enjoy all the features of ESILV Marketplace:</p>
+                <ul>
+                  <li>Buy and sell items within the ESILV community</li>
+                  <li>Create and manage your product listings</li>
+                  <li>Connect with other students</li>
+                  <li>Add items to your favorites</li>
+                </ul>
+              </div>
               <p>Happy trading!</p>
             </div>
             <div class="footer">
-              <p>© ${new Date().getFullYear()} Student Marketplace. All rights reserved.</p>
+              <p>© ${new Date().getFullYear()} ESILV Marketplace. All rights reserved.</p>
+              <p>ESILV - École Supérieure d'Ingénieurs Léonard de Vinci</p>
             </div>
           </div>
         </body>

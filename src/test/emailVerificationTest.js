@@ -112,8 +112,8 @@ async function runTests() {
   log(colors.yellow, '⚠️  MANUAL VERIFICATION REQUIRED');
   log(colors.cyan, '========================================');
   log(colors.yellow, '\nTo complete the test:');
-  log(colors.yellow, '1. Check your email inbox (or Mailtrap)');
-  log(colors.yellow, '2. Find the verification email');
+  log(colors.yellow, '1. Check your email inbox');
+  log(colors.yellow, '2. Find the verification email from ESILV Marketplace');
   log(colors.yellow, '3. Copy the verification token from the URL');
   log(colors.yellow, '4. Visit: http://localhost:3000/api/auth/verify-email?token=YOUR_TOKEN');
   log(colors.yellow, '5. Then try logging in again\n');

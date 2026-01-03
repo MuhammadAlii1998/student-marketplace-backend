@@ -50,10 +50,11 @@ async function checkEmailConfiguration() {
   if (missingVars) {
     log(colors.yellow, '\n⚠️  Some environment variables are missing or not configured!');
     log(colors.yellow, '   Please edit your .env file with proper credentials.');
-    log(colors.yellow, '\n   For testing, we recommend Mailtrap:');
-    log(colors.cyan, '   1. Sign up at https://mailtrap.io (free)');
-    log(colors.cyan, '   2. Get SMTP credentials from your inbox settings');
-    log(colors.cyan, '   3. Add them to your .env file\n');
+    log(colors.yellow, '\n   Gmail Setup Instructions:');
+    log(colors.cyan, '   1. Enable 2-Step Verification: https://myaccount.google.com/security');
+    log(colors.cyan, '   2. Generate App Password: Security > App passwords');
+    log(colors.cyan, '   3. Select "Mail" and "Other (Custom name)"');
+    log(colors.cyan, '   4. Copy the 16-character password and add to .env\n');
     return false;
   }
 
@@ -88,16 +89,16 @@ async function checkEmailConfiguration() {
   log(colors.blue, '\n📧 Testing Email Sending...\n');
   log(colors.yellow, '   Attempting to send a test email...');
 
-  const testEmail = 'test@example.com'; // Mailtrap catches all emails
+  const testEmail = process.env.EMAIL_USER; // Send to self
 
   try {
     const info = await transporter.sendMail({
-      from: `"Student Marketplace Test" <${process.env.EMAIL_USER}>`,
+      from: `"ESILV Marketplace Test" <${process.env.EMAIL_USER}>`,
       to: testEmail,
-      subject: 'Email Configuration Test - Student Marketplace',
+      subject: 'Email Configuration Test - ESILV Marketplace',
       html: `
         <div style="font-family: Arial, sans-serif; padding: 20px;">
-          <h2 style="color: #4CAF50;">✅ Email Configuration Successful!</h2>
+          <h2 style="color: #c70071;">✅ Email Configuration Successful!</h2>
           <p>Your email service is properly configured and working.</p>
           <p>The Student Marketplace email verification system is ready to use.</p>
           <hr>

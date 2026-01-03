@@ -17,7 +17,7 @@ Simple Express + MongoDB backend for the Student Marketplace with **email verifi
 1. **Copy environment file and configure:**
 ```bash
 cp .env.example .env
-# Edit .env with your email credentials (see QUICK_START.md)
+# Edit .env with your email credentials (see GMAIL_QUICK_START.md)
 ```
 
 2. **Install dependencies:**
@@ -35,20 +35,21 @@ npm run dev
 
 ## 📧 Email Verification Setup
 
-**NEW!** Email verification is now required for all users.
+**Email verification is required for all users.**
 
-### Quick Setup:
-1. Get free test email account at https://mailtrap.io
-2. Add credentials to `.env` file:
+### Gmail Setup (Free):
+1. Enable 2-Step Verification: https://myaccount.google.com/security
+2. Generate App Password: Security > App passwords
+3. Add credentials to `.env` file:
 ```env
-EMAIL_HOST=smtp.mailtrap.io
-EMAIL_PORT=2525
-EMAIL_USER=your-username
-EMAIL_PASSWORD=your-password
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USER=your-gmail@gmail.com
+EMAIL_PASSWORD=your-16-char-app-password
 ```
-3. Start server and test!
+4. Test configuration: `npm run test-gmail`
 
-**📖 Full Guide:** See `QUICK_START.md` for complete setup instructions
+**📖 Full Guide:** See `GMAIL_QUICK_START.md` for complete setup instructions
 
 **📚 Documentation:** See `EMAIL_VERIFICATION_GUIDE.md` for detailed API docs
 
@@ -185,21 +186,19 @@ src/
 NODE_ENV=production
 MONGO_URI=your-production-mongodb-uri
 JWT_SECRET=your-secure-secret-key
-EMAIL_HOST=smtp.sendgrid.net
-EMAIL_USER=apikey
-EMAIL_PASSWORD=your-sendgrid-api-key
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USER=your-gmail@gmail.com
+EMAIL_PASSWORD=your-gmail-app-password
 FRONTEND_URL=https://your-frontend-domain.com
 ```
 
-### Recommended Email Services for Production:
-- **SendGrid** - Easy setup, free tier available
-- **AWS SES** - Cost-effective for high volume
-- **Mailgun** - Developer-friendly
-- **Postmark** - Fast delivery
+**Note:** For production, continue using Gmail with App Password (free and reliable) or consider upgrading to Google Workspace for higher sending limits.
 
 ## 📚 Documentation
 
-- `QUICK_START.md` - Quick setup guide for email verification
+- `GMAIL_QUICK_START.md` - Quick Gmail setup guide
+- `GMAIL_SETUP_GUIDE.md` - Detailed Gmail configuration instructions
 - `EMAIL_VERIFICATION_GUIDE.md` - Complete email verification documentation
 - `.env.example` - Environment variable template
 
@@ -208,7 +207,7 @@ FRONTEND_URL=https://your-frontend-domain.com
 ### Email Issues
 - **Emails not sending?** Check `.env` credentials and console logs
 - **Gmail not working?** Use App Password, not regular password
-- **For testing:** Use Mailtrap.io for safe email testing
+- **Test configuration:** Run `npm run test-gmail` to verify setup
 
 ### Database Issues
 - Make sure MongoDB is running locally or connection string is correct
