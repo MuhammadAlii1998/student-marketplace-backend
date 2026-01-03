@@ -11,6 +11,9 @@ const UserSchema = new mongoose.Schema({
   rating: { type: Number, default: 0 },
   reviews: { type: Number, default: 0 },
   favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
+  isEmailVerified: { type: Boolean, default: false },
+  emailVerificationToken: { type: String },
+  emailVerificationExpires: { type: Date },
   createdAt: { type: Date, default: Date.now }
 });
 

@@ -2,10 +2,14 @@ const express = require('express');
 const router = express.Router();
 const controller = require('../controllers/authController');
 const { authenticate } = require('../middleware/auth');
+const { authLimiter, emailLimiter } = require('../middleware/rateLimiter');
+const { validateRegistration, validateLogin, validateEmail } = require('../middleware/validation');
 
-// Public routes
-router.post('/register', controller.register);
-router.post('/login', controller.login);
+// Public routes with rate limiting and validation
+router.post('/register', authLimiter, validateRegistration, controller.register);
+router.post('/login', authLimiter, validateLogin, controller.login);
+router.get('/verify-email', controller.verifyEmail);
+router.post('/resend-verification', emailLimiter, validateEmail, controller.resendVerificationEmail);
 
 // Protected routes
 router.get('/profile', authenticate, controller.getProfile);
