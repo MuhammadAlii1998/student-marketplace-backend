@@ -71,7 +71,45 @@ app.get('/', (req, res) => {
   });
 });
 
-app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
+app.get('/api/health', (req, res) => {
+  const mongoose = require('mongoose');
+  const dbConnected = mongoose.connection.readyState === 1;
+  
+  res.json({ 
+    status: 'ok',
+    server: 'running',
+    database: dbConnected ? 'connected' : 'disconnected',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Diagnostic endpoint to check MongoDB connection and environment
+app.get('/api/diagnostic', async (req, res) => {
+  const mongoose = require('mongoose');
+  
+  const diagnostic = {
+    server: 'running',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'not set',
+    mongodb: {
+      connectionState: mongoose.connection.readyState,
+      stateDescription: ['disconnected', 'connected', 'connecting', 'disconnecting'][mongoose.connection.readyState] || 'unknown',
+      hasMongoUri: !!process.env.MONGO_URI,
+      mongoUriPrefix: process.env.MONGO_URI ? process.env.MONGO_URI.substring(0, 20) + '...' : 'NOT SET',
+      databaseName: mongoose.connection.name || 'not connected'
+    },
+    environmentVariables: {
+      hasFrontendUrl: !!process.env.FRONTEND_URL,
+      hasJwtSecret: !!process.env.JWT_SECRET,
+      hasEmailHost: !!process.env.EMAIL_HOST,
+      hasEmailUser: !!process.env.EMAIL_USER,
+      hasEmailPassword: !!process.env.EMAIL_PASSWORD
+    }
+  };
+  
+  res.json(diagnostic);
+});
+
 app.use('/api/products', require('./routes/products'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/categories', require('./routes/categories'));
