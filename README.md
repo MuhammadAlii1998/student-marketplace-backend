@@ -7,7 +7,8 @@ Simple Express + MongoDB backend for the Student Marketplace with **email verifi
 - 🔐 **JWT Authentication** with email verification
 - 📧 **Automated Email Verification** - Users must verify email before login
 - 🛍️ **Product Management** - CRUD operations for marketplace items
-- 🛒 **Shopping Cart** - Cart management system
+- � **Image Upload** - Cloudinary integration for product images
+- �🛒 **Shopping Cart** - Cart management system
 - 📁 **Categories** - Product categorization
 - ⭐ **Favorites** - Save favorite products
 - 👥 **User Profiles** - Student profiles with university verification
@@ -28,6 +29,9 @@ EMAIL_PORT=587
 EMAIL_USER=your-email@gmail.com
 EMAIL_PASSWORD=your-gmail-app-password
 FRONTEND_URL=http://localhost:5173
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
 ```
 
 **Important:** `FRONTEND_URL` should point to your **local frontend** (e.g., Vite dev server on port 5173)
@@ -45,6 +49,9 @@ EMAIL_PORT=587
 EMAIL_USER=your-email@gmail.com
 EMAIL_PASSWORD=your-gmail-app-password
 FRONTEND_URL=https://esilv-marketplace.netlify.app
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
 ```
 
 **Important:** `FRONTEND_URL` should point to your **production frontend** on Netlify
@@ -102,6 +109,34 @@ EMAIL_PASSWORD=your-16-char-app-password
 
 **📚 Documentation:** See `EMAIL_VERIFICATION_GUIDE.md` for detailed API docs
 
+## 📸 Image Upload Setup (Cloudinary)
+
+**Product listings require images stored on Cloudinary.**
+
+### Cloudinary Setup (Free):
+1. Sign up at https://cloudinary.com (Free tier: 25GB storage)
+2. Go to Dashboard: https://cloudinary.com/console
+3. Copy your credentials:
+   - Cloud Name
+   - API Key
+   - API Secret
+4. Add credentials to `.env` file:
+```env
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
+```
+5. Test upload: `curl` examples in `IMAGE_UPLOAD_GUIDE.md`
+
+**📖 Full Guide:** See `IMAGE_UPLOAD_GUIDE.md` for complete implementation details
+
+**Features:**
+- ✅ Auto-resize to 1200x1200px max
+- ✅ Auto-optimization (quality & format)
+- ✅ 5MB file size limit
+- ✅ Rate limiting (20 uploads/15 min)
+- ✅ Automatic image cleanup when product deleted
+
 ## 🔑 API Endpoints
 
 ### Authentication
@@ -120,6 +155,8 @@ EMAIL_PASSWORD=your-16-char-app-password
 - `GET /api/products/:id` — Get single product
 - `PUT /api/products/:id` — Update product (protected)
 - `DELETE /api/products/:id` — Delete product (protected)
+- `POST /api/products/upload-image` — Upload product image (protected, rate-limited)
+- `DELETE /api/products/:id/image/:publicId` — Delete image from Cloudinary (protected)
 
 ### Categories
 - `GET /api/categories` — List all categories
@@ -202,30 +239,34 @@ npm run seed
 - **JWT** - Authentication
 - **bcryptjs** - Password hashing
 - **Nodemailer** - Email sending
+- **Cloudinary** - Image storage and CDN
+- **Multer** - File upload handling
 
 ## 📁 Project Structure
 
 ```
 src/
 ├── config/
-│   └── db.js                 # Database configuration
+│   ├── db.js                 # Database configuration
+│   └── cloudinary.js         # Cloudinary configuration
 ├── controllers/
 │   ├── authController.js     # Authentication & email verification
-│   ├── productController.js  # Product operations
+│   ├── productController.js  # Product operations & image upload
 │   ├── cartController.js     # Cart management
 │   └── categoryController.js # Category operations
 ├── models/
 │   ├── user.js              # User model (with email verification)
-│   ├── product.js           # Product model
+│   ├── product.js           # Product model (with image support)
 │   ├── cart.js              # Cart model
 │   └── category.js          # Category model
 ├── routes/
 │   ├── auth.js              # Auth routes
-│   ├── products.js          # Product routes
+│   ├── products.js          # Product routes (including image upload)
 │   ├── cart.js              # Cart routes
 │   └── categories.js        # Category routes
 ├── middleware/
-│   └── auth.js              # JWT authentication middleware
+│   ├── auth.js              # JWT authentication middleware
+│   └── upload.js            # Multer file upload middleware
 ├── utils/
 │   └── emailService.js      # Email sending service
 ├── test/
@@ -257,6 +298,9 @@ EMAIL_PORT=587
 EMAIL_USER=your-gmail@gmail.com
 EMAIL_PASSWORD=your-gmail-app-password
 FRONTEND_URL=https://your-frontend-domain.com
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
 ```
 
 **Note:** For production, continue using Gmail with App Password (free and reliable) or consider upgrading to Google Workspace for higher sending limits.
@@ -290,6 +334,9 @@ EMAIL_PORT=587
 EMAIL_USER=your-gmail@gmail.com
 EMAIL_PASSWORD=your-gmail-app-password
 FRONTEND_URL=https://esilv-marketplace.netlify.app
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
 NODE_ENV=production
 ```
 
@@ -317,11 +364,13 @@ NODE_ENV=production
 **Environment Variables Not Working:**
 - ✅ After adding/changing env vars, click **"Redeploy"** in Vercel
 
-## �📚 Documentation
+##  Documentation
 
 - `GMAIL_QUICK_START.md` - Quick Gmail setup guide
 - `GMAIL_SETUP_GUIDE.md` - Detailed Gmail configuration instructions
 - `EMAIL_VERIFICATION_GUIDE.md` - Complete email verification documentation
+- `IMAGE_UPLOAD_GUIDE.md` - Complete image upload implementation guide
+- `ENVIRONMENT_SETUP.md` - Environment configuration guide
 - `.env.example` - Environment variable template
 
 ## 🐛 Troubleshooting

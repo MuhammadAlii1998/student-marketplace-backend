@@ -117,25 +117,85 @@ async function createProduct(req, res) {
   try {
     const { title, name, description, price, originalPrice, image, images, category, condition, location } = req.body;
     
+    // Validation
+    if (!title && !name) {
+      return res.status(400).json({ message: 'Title is required' });
+    }
+    if (!description) {
+      return res.status(400).json({ message: 'Description is required' });
+    }
+    if (!price) {
+      return res.status(400).json({ message: 'Price is required' });
+    }
+    if (!category) {
+      return res.status(400).json({ message: 'Category is required' });
+    }
+    if (!condition) {
+      return res.status(400).json({ message: 'Condition is required' });
+    }
+    if (!location) {
+      return res.status(400).json({ message: 'Location is required' });
+    }
+
+    // Validate images
+    const productImages = images || (image ? [image] : []);
+    if (!productImages || productImages.length === 0) {
+      return res.status(400).json({ message: 'At least one image is required' });
+    }
+    if (productImages.length > 6) {
+      return res.status(400).json({ message: 'Maximum 6 images allowed' });
+    }
+
+    // Validate category
+    const validCategories = ['Books', 'Electronics', 'Furniture', 'Clothing', 'Music', 'Sports'];
+    if (!validCategories.includes(category)) {
+      return res.status(400).json({ 
+        message: `Invalid category. Must be one of: ${validCategories.join(', ')}` 
+      });
+    }
+
+    // Validate condition
+    const validConditions = ['new', 'like-new', 'good', 'fair'];
+    if (!validConditions.includes(condition)) {
+      return res.status(400).json({ 
+        message: `Invalid condition. Must be one of: ${validConditions.join(', ')}` 
+      });
+    }
+
+    // Validate price
+    if (price < 0) {
+      return res.status(400).json({ message: 'Price cannot be negative' });
+    }
+    if (originalPrice && originalPrice < 0) {
+      return res.status(400).json({ message: 'Original price cannot be negative' });
+    }
+    
     const productData = {
       title: title || name, // Support both 'title' and 'name' for backward compatibility
       description,
       price,
       originalPrice,
-      image: image || (images && images[0]),
-      images: images || (image ? [image] : []),
+      image: image || productImages[0],
+      images: productImages,
       category,
-      condition: condition || 'good',
+      condition,
       location,
-      seller: req.userId // Will be undefined if not authenticated
+      seller: req.userId
     };
     
     const p = new Product(productData);
     const saved = await p.save();
     await saved.populate('seller', 'name avatar rating reviews university');
-    res.status(201).json(saved);
+    res.status(201).json({
+      message: 'Product created successfully',
+      product: saved
+    });
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    console.error('Product creation error:', err);
+    res.status(400).json({ 
+      message: err.message || 'Failed to create product',
+      error: err.name
+    });
   }
 }
 
@@ -233,13 +293,22 @@ async function uploadImage(req, res) {
     }
 
     // File is already uploaded to Cloudinary by multer middleware
-    res.json({
+    res.status(200).json({
       message: 'Image uploaded successfully',
-      url: req.file.path,
-      publicId: req.file.filename
+      imageUrl: req.file.path, // Cloudinary URL
+      publicId: req.file.filename, // For deletion if needed
+      // Additional metadata
+      format: req.file.format,
+      width: req.file.width,
+      height: req.file.height,
+      bytes: req.file.bytes
     });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error('Image upload error:', err);
+    res.status(500).json({ 
+      message: 'Failed to upload image',
+      error: err.message 
+    });
   }
 }
 
@@ -248,16 +317,36 @@ async function deleteImage(req, res) {
   try {
     const { publicId } = req.params;
 
+    if (!publicId) {
+      return res.status(400).json({ message: 'Public ID is required' });
+    }
+
     // Delete from Cloudinary
     const result = await cloudinary.uploader.destroy(publicId);
 
     if (result.result === 'ok') {
-      res.json({ message: 'Image deleted successfully' });
+      res.status(200).json({ 
+        message: 'Image deleted successfully',
+        publicId,
+        result: result.result
+      });
+    } else if (result.result === 'not found') {
+      res.status(404).json({ 
+        message: 'Image not found in Cloudinary',
+        publicId 
+      });
     } else {
-      res.status(404).json({ message: 'Image not found' });
+      res.status(400).json({ 
+        message: 'Failed to delete image',
+        result: result.result 
+      });
     }
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error('Image deletion error:', err);
+    res.status(500).json({ 
+      message: 'Failed to delete image',
+      error: err.message 
+    });
   }
 }
 
