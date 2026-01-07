@@ -4,66 +4,15 @@ const Product = require('./models/product');
 const User = require('./models/user');
 const Category = require('./models/category');
 
+// Categories without hardcoded counts (will be dynamic based on products)
 const categories = [
-  { name: "Books", slug: "books", count: 245 },
-  { name: "Electronics", slug: "electronics", count: 189 },
-  { name: "Furniture", slug: "furniture", count: 87 },
-  { name: "Clothing", slug: "clothing", count: 156 },
-  { name: "Sports", slug: "sports", count: 63 },
-  { name: "Music", slug: "music", count: 42 },
-];
-
-const users = [
-  {
-    name: "Alex Johnson",
-    email: "alex.johnson@edu.devinci.fr",
-    password: "password123",
-    studentId: "701234",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop",
-    university: "ESILV",
-    rating: 4.8,
-    reviews: 23
-  },
-  {
-    name: "Sarah Chen",
-    email: "sarah.chen@edu.devinci.fr",
-    password: "password123",
-    studentId: "702345",
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop",
-    university: "ESILV",
-    rating: 5.0,
-    reviews: 47
-  },
-  {
-    name: "Mike Brown",
-    email: "mike.brown@edu.devinci.fr",
-    password: "password123",
-    studentId: "703456",
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop",
-    university: "ESILV",
-    rating: 4.5,
-    reviews: 12
-  },
-  {
-    name: "Emma Wilson",
-    email: "emma.wilson@edu.devinci.fr",
-    password: "password123",
-    studentId: "704567",
-    avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop",
-    university: "ESILV",
-    rating: 4.9,
-    reviews: 31
-  },
-  {
-    name: "Demo User",
-    email: "demo@edu.devinci.fr",
-    password: "demo123",
-    studentId: "705678",
-    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop",
-    university: "ESILV",
-    rating: 4.7,
-    reviews: 19
-  }
+  { name: "Books", slug: "books" },
+  { name: "Electronics", slug: "electronics" },
+  { name: "Furniture", slug: "furniture" },
+  { name: "Clothing", slug: "clothing" },
+  { name: "Sports", slug: "sports" },
+  { name: "Music", slug: "music" },
+  { name: "Others", slug: "others" }
 ];
 
 async function seed() {
@@ -72,25 +21,26 @@ async function seed() {
     
     // Clear existing data
     await Product.deleteMany({});
-    await User.deleteMany({});
     await Category.deleteMany({});
     
-    console.log('Cleared existing data');
+    console.log('Cleared existing products and categories');
 
-    // Seed categories
+    // Seed categories (without counts - will be calculated dynamically)
     await Category.insertMany(categories);
     console.log('Seeded categories');
 
-    // Seed users
-    const createdUsers = [];
-    for (const userData of users) {
-      const user = new User(userData);
-      await user.save();
-      createdUsers.push(user);
+    // Find or verify the main user account
+    let mainUser = await User.findOne({ email: 'muhammad.ali@edu.devinci.fr' });
+    
+    if (!mainUser) {
+      console.log('⚠️  User muhammad.ali@edu.devinci.fr not found!');
+      console.log('Please register this account first or update the email in seed.js');
+      process.exit(1);
     }
-    console.log('Seeded users');
+    
+    console.log(`✅ Found user: ${mainUser.name} (${mainUser.email})`);
 
-    // Products data
+    // Sample products - all linked to muhammad.ali@edu.devinci.fr
     const products = [
       {
         title: "Calculus: Early Transcendentals 8th Edition",
@@ -105,7 +55,7 @@ async function seed() {
         category: "Books",
         condition: "like-new",
         location: "Campus Library",
-        seller: createdUsers[0]._id
+        seller: mainUser._id
       },
       {
         title: "MacBook Pro 13\" 2021 - M1 Chip",
@@ -120,7 +70,7 @@ async function seed() {
         category: "Electronics",
         condition: "good",
         location: "Engineering Building",
-        seller: createdUsers[1]._id
+        seller: mainUser._id
       },
       {
         title: "IKEA KALLAX Shelf Unit - White",
@@ -134,7 +84,7 @@ async function seed() {
         category: "Furniture",
         condition: "fair",
         location: "Student Housing",
-        seller: createdUsers[2]._id
+        seller: mainUser._id
       },
       {
         title: "TI-84 Plus CE Graphing Calculator",
@@ -148,7 +98,7 @@ async function seed() {
         category: "Electronics",
         condition: "like-new",
         location: "Math Building",
-        seller: createdUsers[3]._id
+        seller: mainUser._id
       },
       {
         title: "Organic Chemistry Textbook + Study Guide",
@@ -162,7 +112,7 @@ async function seed() {
         category: "Books",
         condition: "good",
         location: "Science Center",
-        seller: createdUsers[4]._id
+        seller: mainUser._id
       },
       {
         title: "Sony WH-1000XM4 Headphones",
@@ -176,7 +126,7 @@ async function seed() {
         category: "Electronics",
         condition: "like-new",
         location: "Student Center",
-        seller: createdUsers[0]._id
+        seller: mainUser._id
       },
       {
         title: "Ergonomic Desk Chair - Black",
@@ -190,7 +140,7 @@ async function seed() {
         category: "Furniture",
         condition: "good",
         location: "Off-Campus Housing",
-        seller: createdUsers[1]._id
+        seller: mainUser._id
       },
       {
         title: "Nike Dunk Low - Size 10",
@@ -204,18 +154,27 @@ async function seed() {
         category: "Clothing",
         condition: "like-new",
         location: "Campus Store",
-        seller: createdUsers[2]._id
+        seller: mainUser._id
       }
     ];
 
     // Seed products
-    await Product.insertMany(products);
-    console.log('Seeded products');
+    const createdProducts = await Product.insertMany(products);
+    console.log(`Seeded ${createdProducts.length} products`);
+
+    // Update category counts dynamically
+    for (const category of categories) {
+      const count = await Product.countDocuments({ category: category.name });
+      await Category.updateOne(
+        { slug: category.slug },
+        { $set: { count: count } }
+      );
+    }
+    console.log('Updated category counts dynamically');
 
     console.log('\n✅ Database seeded successfully!');
-    console.log('\n📧 Demo user credentials:');
-    console.log('   Email: demo@edu.devinci.fr');
-    console.log('   Password: demo123\n');
+    console.log(`\n📦 Created ${createdProducts.length} products for ${mainUser.name}`);
+    console.log(`📧 User: ${mainUser.email}\n`);
     
     process.exit(0);
   } catch (err) {

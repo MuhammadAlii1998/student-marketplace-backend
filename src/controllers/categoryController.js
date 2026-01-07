@@ -6,12 +6,10 @@ async function getCategories(req, res) {
   try {
     const categories = await Category.find().sort({ name: 1 });
     
-    // Add product count to each category
+    // Add dynamic product count to each category
     const categoriesWithCount = await Promise.all(
       categories.map(async (cat) => {
-        const count = await Product.countDocuments({ 
-          category: { $regex: new RegExp(cat.slug, 'i') }
-        });
+        const count = await Product.countDocuments({ category: cat.name });
         return {
           ...cat.toObject(),
           count
@@ -33,10 +31,8 @@ async function getCategoryBySlug(req, res) {
       return res.status(404).json({ message: 'Category not found' });
     }
     
-    // Add product count
-    const count = await Product.countDocuments({ 
-      category: { $regex: new RegExp(category.slug, 'i') }
-    });
+    // Add dynamic product count
+    const count = await Product.countDocuments({ category: category.name });
     
     res.json({
       ...category.toObject(),
