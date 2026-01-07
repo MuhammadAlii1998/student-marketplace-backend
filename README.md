@@ -12,17 +12,66 @@ Simple Express + MongoDB backend for the Student Marketplace with **email verifi
 - ⭐ **Favorites** - Save favorite products
 - 👥 **User Profiles** - Student profiles with university verification
 
-## 🚀 Quick Start
+## � Environment Setup
+
+### **Local Development**
+
+Your `.env` file should use **localhost** URLs:
+
+```env
+NODE_ENV=development
+PORT=3000
+MONGO_URI=mongodb+srv://your-connection-string
+JWT_SECRET=your-secret-key
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASSWORD=your-gmail-app-password
+FRONTEND_URL=http://localhost:5173
+```
+
+**Important:** `FRONTEND_URL` should point to your **local frontend** (e.g., Vite dev server on port 5173)
+
+### **Production (Vercel)**
+
+Set these environment variables in **Vercel Dashboard** → Settings → Environment Variables:
+
+```env
+NODE_ENV=production
+MONGO_URI=mongodb+srv://your-connection-string
+JWT_SECRET=your-secure-production-secret
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASSWORD=your-gmail-app-password
+FRONTEND_URL=https://esilv-marketplace.netlify.app
+```
+
+**Important:** `FRONTEND_URL` should point to your **production frontend** on Netlify
+
+### **Why This Matters**
+
+The `FRONTEND_URL` is used for:
+- ✅ Email verification links (e.g., `https://your-frontend.com/verify-email?token=...`)
+- ✅ Password reset links
+- ✅ Welcome emails
+
+**Correct setup ensures:**
+- Development: Links point to `localhost:5173` → Works on your machine
+- Production: Links point to `https://esilv-marketplace.netlify.app` → Works for users
+
+---
+
+## �🚀 Quick Start
 
 1. **Copy environment file and configure:**
 ```bash
 cp .env.example .env
-# Edit .env with your email credentials (see GMAIL_QUICK_START.md)
+# Edit .env with your credentials and set FRONTEND_URL=http://localhost:5173
 ```
 
 2. **Install dependencies:**
 ```bash
-cd /Users/Apple/Downloads/Data/student-marketplace-backend
 npm install
 ```
 
