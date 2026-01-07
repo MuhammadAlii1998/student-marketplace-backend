@@ -87,6 +87,38 @@ app.get('/api/health', (req, res) => {
 app.get('/api/diagnostic', async (req, res) => {
   const mongoose = require('mongoose');
   
+  // Try to connect if not connected
+  if (mongoose.connection.readyState === 0) {
+    try {
+      await mongoose.connect(process.env.MONGO_URI, {
+        serverSelectionTimeoutMS: 5000,
+        connectTimeoutMS: 5000,
+        socketTimeoutMS: 5000,
+        family: 4
+      });
+    } catch (connectError) {
+      // Catch and return the error
+      return res.json({
+        server: 'running',
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'not set',
+        mongodb: {
+          connectionState: 0,
+          stateDescription: 'disconnected',
+          connectionError: {
+            name: connectError.name,
+            message: connectError.message,
+            code: connectError.code,
+            reason: connectError.reason ? connectError.reason.toString() : 'none'
+          }
+        },
+        troubleshooting: {
+          errorDetails: connectError.toString()
+        }
+      });
+    }
+  }
+  
   const diagnostic = {
     server: 'running',
     timestamp: new Date().toISOString(),
