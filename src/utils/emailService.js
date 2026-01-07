@@ -222,7 +222,121 @@ async function sendWelcomeEmail(email, name) {
   }
 }
 
+// Send password reset email
+async function sendPasswordResetEmail(email, name, resetToken) {
+  try {
+    const transporter = createTransporter();
+    
+    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
+    
+    const mailOptions = {
+      from: `"ESILV Marketplace" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: 'Reset Your Password - ESILV Marketplace',
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff; }
+            .header { 
+              background-color: #c70071; 
+              color: white; 
+              padding: 30px 20px; 
+              text-align: center;
+              border-radius: 5px 5px 0 0;
+            }
+            .logo-container { 
+              background-color: white;
+              padding: 15px;
+              border-radius: 5px;
+              display: inline-block;
+              margin-bottom: 15px;
+            }
+            .logo-text {
+              font-size: 28px;
+              font-weight: bold;
+              color: #c70071;
+              margin: 0;
+              letter-spacing: 2px;
+            }
+            .content { background-color: #f9f9f9; padding: 30px; border-radius: 0 0 5px 5px; }
+            .button { 
+              display: inline-block; 
+              padding: 12px 30px; 
+              background-color: #c70071; 
+              color: white !important; 
+              text-decoration: none; 
+              border-radius: 5px; 
+              margin: 20px 0;
+              font-weight: bold;
+            }
+            .warning-box {
+              background-color: #fff3cd;
+              border-left: 4px solid #ffc107;
+              padding: 15px;
+              margin: 20px 0;
+              border-radius: 3px;
+            }
+            .footer { 
+              text-align: center; 
+              padding: 20px; 
+              font-size: 12px; 
+              color: #666; 
+              border-top: 1px solid #ddd;
+              margin-top: 20px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <div class="logo-container">
+                <h1 class="logo-text">ESILV</h1>
+              </div>
+              <h1 style="margin: 0;">🔒 Password Reset Request</h1>
+            </div>
+            <div class="content">
+              <h2>Hi ${name},</h2>
+              <p>We received a request to reset your password for your ESILV Marketplace account.</p>
+              <p>Click the button below to reset your password:</p>
+              <div style="text-align: center;">
+                <a href="${resetUrl}" class="button">Reset Password</a>
+              </div>
+              <p>Or copy and paste this link into your browser:</p>
+              <p style="word-break: break-all; color: #c70071;">${resetUrl}</p>
+              <div class="warning-box">
+                <p style="margin: 0;"><strong>⚠️ Important Security Information:</strong></p>
+                <ul style="margin: 10px 0;">
+                  <li>This link will expire in 1 hour</li>
+                  <li>If you didn't request this reset, please ignore this email</li>
+                  <li>Your password will remain unchanged unless you click the link above</li>
+                </ul>
+              </div>
+              <p>If you have any concerns about your account security, please contact support immediately.</p>
+            </div>
+            <div class="footer">
+              <p>© ${new Date().getFullYear()} ESILV Marketplace. All rights reserved.</p>
+              <p>ESILV - École Supérieure d'Ingénieurs Léonard de Vinci</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Password reset email sent:', info.messageId);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error('Error sending password reset email:', error);
+    return { success: false, error: error.message };
+  }
+}
+
 module.exports = {
   sendVerificationEmail,
-  sendWelcomeEmail
+  sendWelcomeEmail,
+  sendPasswordResetEmail
 };

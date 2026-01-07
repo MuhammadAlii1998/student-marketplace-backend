@@ -60,6 +60,8 @@ EMAIL_PASSWORD=your-16-char-app-password
 - `POST /api/auth/login` — Login (requires verified email)
 - `GET /api/auth/verify-email?token=...` — Verify email address
 - `POST /api/auth/resend-verification` — Resend verification email
+- `POST /api/auth/forgot-password` — Request password reset email
+- `POST /api/auth/reset-password` — Reset password with token
 - `GET /api/auth/profile` — Get user profile (protected)
 - `PUT /api/auth/profile` — Update profile (protected)
 
@@ -106,7 +108,7 @@ curl -X POST http://localhost:3000/api/auth/register \
     "name": "Test User",
     "email": "test@edu.devinci.fr",
     "password": "password123",
-    "studentId": "1234567"
+    "studentId": "123456"
   }'
 
 # Check email, then verify with token from email
@@ -118,6 +120,21 @@ curl -X POST http://localhost:3000/api/auth/login \
   -d '{
     "email": "test@edu.devinci.fr",
     "password": "password123"
+  }'
+
+# Request password reset
+curl -X POST http://localhost:3000/api/auth/forgot-password \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "test@edu.devinci.fr"
+  }'
+
+# Reset password (use token from email)
+curl -X POST http://localhost:3000/api/auth/reset-password \
+  -H "Content-Type: application/json" \
+  -d '{
+    "token": "YOUR_RESET_TOKEN",
+    "newPassword": "newPassword123"
   }'
 ```
 

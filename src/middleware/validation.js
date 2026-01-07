@@ -26,8 +26,8 @@ function validateRegistration(req, res, next) {
   }
 
   // Validate student ID
-  if (!studentId || !/^\d{7}$/.test(studentId)) {
-    errors.push('Student ID must be exactly 7 digits');
+  if (!studentId || !/^\d{6}$/.test(studentId)) {
+    errors.push('Student ID must be exactly 6 digits');
   }
 
   if (errors.length > 0) {
@@ -116,9 +116,43 @@ function validateEmail(req, res, next) {
   next();
 }
 
+// Validate password reset request
+function validatePasswordResetRequest(req, res, next) {
+  const { email } = req.body;
+
+  if (!email || !validator.isEmail(email)) {
+    return res.status(400).json({ message: 'Valid email is required' });
+  }
+
+  req.body.email = validator.normalizeEmail(req.body.email);
+  next();
+}
+
+// Validate password reset
+function validatePasswordReset(req, res, next) {
+  const { token, newPassword } = req.body;
+  const errors = [];
+
+  if (!token || typeof token !== 'string' || token.trim().length === 0) {
+    errors.push('Reset token is required');
+  }
+
+  if (!newPassword || newPassword.length < 8) {
+    errors.push('New password must be at least 8 characters long');
+  }
+
+  if (errors.length > 0) {
+    return res.status(400).json({ message: 'Validation failed', errors });
+  }
+
+  next();
+}
+
 module.exports = {
   validateRegistration,
   validateLogin,
   validateProduct,
-  validateEmail
+  validateEmail,
+  validatePasswordResetRequest,
+  validatePasswordReset
 };

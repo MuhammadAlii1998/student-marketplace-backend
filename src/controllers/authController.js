@@ -1,7 +1,7 @@
 const User = require('../models/user');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const { sendVerificationEmail, sendWelcomeEmail } = require('../utils/emailService');
+const { sendVerificationEmail, sendWelcomeEmail, sendPasswordResetEmail } = require('../utils/emailService');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 const JWT_EXPIRES_IN = '7d';
@@ -23,10 +23,10 @@ async function register(req, res) {
       });
     }
 
-    // Validate student ID format (7 digits)
-    if (!studentId || !/^\d{7}$/.test(studentId)) {
+    // Validate student ID format (6 digits)
+    if (!studentId || !/^\d{6}$/.test(studentId)) {
       return res.status(400).json({ 
-        message: 'Invalid student ID. Must be exactly 7 digits (e.g., 7277000)' 
+        message: 'Invalid student ID. Must be exactly 6 digits (e.g., 727700)' 
       });
     }
 
@@ -281,6 +281,106 @@ async function resendVerificationEmail(req, res) {
   }
 }
 
+// Forgot password - Request password reset
+async function forgotPassword(req, res) {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: 'Email is required' });
+    }
+
+    // Find user
+    const user = await User.findOne({ email });
+    
+    // Don't reveal if user exists or not for security
+    if (!user) {
+      return res.json({
+        message: 'If an account with that email exists, a password reset link has been sent.'
+      });
+    }
+
+    // Check if email is verified
+    if (!user.isEmailVerified) {
+      return res.status(403).json({ 
+        message: 'Please verify your email first. Check your inbox for the verification link.',
+        emailVerified: false
+      });
+    }
+
+    // Generate password reset token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    user.passwordResetToken = resetToken;
+    user.passwordResetExpires = resetExpires;
+    await user.save();
+
+    // Send password reset email
+    const emailResult = await sendPasswordResetEmail(email, user.name, resetToken);
+
+    if (!emailResult.success) {
+      console.error('Failed to send password reset email:', emailResult.error);
+      return res.status(500).json({ 
+        message: 'Failed to send password reset email. Please try again later.'
+      });
+    }
+
+    res.json({
+      message: 'If an account with that email exists, a password reset link has been sent.',
+      email: email
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+}
+
+// Reset password - Actually reset the password
+async function resetPassword(req, res) {
+  try {
+    const { token, newPassword } = req.body;
+
+    if (!token) {
+      return res.status(400).json({ message: 'Reset token is required' });
+    }
+
+    if (!newPassword || newPassword.length < 8) {
+      return res.status(400).json({ 
+        message: 'New password must be at least 8 characters long' 
+      });
+    }
+
+    // Find user with valid reset token
+    const user = await User.findOne({
+      passwordResetToken: token,
+      passwordResetExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ 
+        message: 'Invalid or expired password reset token. Please request a new one.' 
+      });
+    }
+
+    // Update password
+    user.password = newPassword;
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save();
+
+    // Generate token for auto-login
+    const authToken = generateToken(user._id);
+
+    res.json({
+      message: 'Password reset successfully! You can now log in with your new password.',
+      token: authToken,
+      user
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+}
+
 module.exports = {
   register,
   login,
@@ -290,5 +390,7 @@ module.exports = {
   removeFavorite,
   getFavorites,
   verifyEmail,
-  resendVerificationEmail
+  resendVerificationEmail,
+  forgotPassword,
+  resetPassword
 };
