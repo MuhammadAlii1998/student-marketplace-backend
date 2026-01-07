@@ -11,7 +11,8 @@
     "test-email": "node src/test/emailVerificationTest.js",
     "check-email": "node src/test/checkEmailConfig.js",
     "test-gmail": "node src/test/testGmailSetup.js",
-    "create-indexes": "node src/scripts/createIndexes.js"
+    "create-indexes": "node src/scripts/createIndexes.js",
+    "delete-users": "node src/scripts/deleteAllUsers.js"
   },
   "author": "",
   "license": "MIT",
