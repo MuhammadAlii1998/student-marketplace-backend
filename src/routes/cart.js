@@ -1,15 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const controller = require('../controllers/cartController');
-const { authenticate } = require('../middleware/auth');
+const { authenticate, optionalAuth } = require('../middleware/auth');
 
-// All cart routes require authentication
-router.use(authenticate);
+// GET cart - optional auth (returns empty cart for guests)
+router.get('/', optionalAuth, controller.getCart);
 
-router.get('/', controller.getCart);
-router.post('/', controller.addToCart);
-router.put('/:productId', controller.updateCartItem);
-router.delete('/:productId', controller.removeFromCart);
-router.delete('/', controller.clearCart);
+// Other cart routes require authentication (must be logged in to modify cart)
+router.post('/', authenticate, controller.addToCart);
+router.put('/:productId', authenticate, controller.updateCartItem);
+router.delete('/:productId', authenticate, controller.removeFromCart);
+router.delete('/', authenticate, controller.clearCart);
 
 module.exports = router;

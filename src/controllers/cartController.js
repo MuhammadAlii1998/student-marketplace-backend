@@ -3,6 +3,11 @@ const Cart = require('../models/cart');
 // Get user's cart
 async function getCart(req, res) {
   try {
+    // If no user is authenticated, return an empty cart for guests
+    if (!req.userId) {
+      return res.json({ items: [] });
+    }
+    
     let cart = await Cart.findOne({ user: req.userId }).populate('items.product');
     if (!cart) {
       cart = { user: req.userId, items: [] };
