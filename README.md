@@ -212,7 +212,63 @@ FRONTEND_URL=https://your-frontend-domain.com
 
 **Note:** For production, continue using Gmail with App Password (free and reliable) or consider upgrading to Google Workspace for higher sending limits.
 
-## 📚 Documentation
+## � Vercel Deployment
+
+### Prerequisites
+1. Push your code to GitHub
+2. Have a MongoDB Atlas account (free tier works)
+
+### Step 1: Configure MongoDB Atlas
+**IMPORTANT:** Vercel uses dynamic IPs, so you must whitelist all IPs:
+
+1. Go to [MongoDB Atlas](https://cloud.mongodb.com/)
+2. Select your cluster → **Network Access**
+3. Click **"Add IP Address"**
+4. Click **"Allow Access from Anywhere"** (or add `0.0.0.0/0`)
+5. Click **Confirm**
+
+### Step 2: Deploy to Vercel
+1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
+2. Click **"Add New Project"**
+3. Import your GitHub repository
+4. Configure **Environment Variables**:
+
+```
+MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/database?retryWrites=true&w=majority
+JWT_SECRET=your-secret-key-change-in-production-12345
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USER=your-gmail@gmail.com
+EMAIL_PASSWORD=your-gmail-app-password
+FRONTEND_URL=https://esilv-marketplace.netlify.app
+NODE_ENV=production
+```
+
+5. Click **Deploy**
+
+### Step 3: Verify Deployment
+1. Check deployment logs for successful MongoDB connection
+2. Test API endpoint: `https://your-app.vercel.app/api/health`
+3. If MongoDB timeout errors occur, verify:
+   - MongoDB Atlas IP whitelist includes `0.0.0.0/0`
+   - `MONGO_URI` environment variable is correct in Vercel
+   - Connection string includes proper credentials
+
+### Common Vercel Issues
+
+**MongoDB Connection Timeout:**
+- ✅ Whitelist `0.0.0.0/0` in MongoDB Atlas Network Access
+- ✅ Ensure `MONGO_URI` is set in Vercel Environment Variables
+- ✅ Check MongoDB Atlas cluster is running (not paused)
+
+**CORS Errors:**
+- ✅ Add your frontend URL to Vercel environment variable `FRONTEND_URL`
+- ✅ Push latest code with CORS configuration
+
+**Environment Variables Not Working:**
+- ✅ After adding/changing env vars, click **"Redeploy"** in Vercel
+
+## �📚 Documentation
 
 - `GMAIL_QUICK_START.md` - Quick Gmail setup guide
 - `GMAIL_SETUP_GUIDE.md` - Detailed Gmail configuration instructions
