@@ -3,21 +3,31 @@ const mongoose = require('mongoose');
 async function connectDB(uri) {
   const mongoUri = uri || process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/student-marketplace';
   
+  console.log('🔄 Attempting to connect to MongoDB...');
+  console.log('📍 Connection string prefix:', mongoUri.substring(0, 30) + '...');
+  
   try {
     await mongoose.connect(mongoUri, {
-      serverSelectionTimeoutMS: 30000, // Increase timeout to 30 seconds
-      socketTimeoutMS: 45000, // Socket timeout
-      maxPoolSize: 10, // Connection pool size
-      minPoolSize: 1
+      serverSelectionTimeoutMS: 10000, // Fail faster - 10 seconds
+      connectTimeoutMS: 10000,
+      socketTimeoutMS: 10000,
+      family: 4 // Force IPv4
     });
     console.log('✅ MongoDB connected successfully');
     console.log(`📍 Database: ${mongoose.connection.name}`);
+    console.log(`📍 Host: ${mongoose.connection.host}`);
   } catch (err) {
-    console.error('❌ Error connecting to MongoDB:', err.message);
+    console.error('❌ MongoDB Connection Error Details:');
+    console.error('   Error Name:', err.name);
+    console.error('   Error Message:', err.message);
+    console.error('   Error Code:', err.code);
+    console.error('   Full Error:', JSON.stringify(err, null, 2));
     
     // In production (Vercel), don't exit - let the app start and show better errors
     if (process.env.NODE_ENV === 'production') {
-      console.error('⚠️  Running without database connection. Check environment variables and IP whitelist.');
+      console.error('⚠️  Running without database connection.');
+      console.error('⚠️  CRITICAL: MongoDB Atlas is not accessible from Vercel.');
+      console.error('⚠️  ACTION REQUIRED: Add 0.0.0.0/0 to Network Access in MongoDB Atlas');
     } else {
       process.exit(1);
     }
@@ -30,11 +40,21 @@ mongoose.connection.on('connected', () => {
 });
 
 mongoose.connection.on('error', (err) => {
-  console.error('❌ Mongoose connection error:', err);
+  console.error('❌ Mongoose connection error:', err.message);
+  console.error('   Error details:', err);
 });
 
 mongoose.connection.on('disconnected', () => {
-  console.log('⚠️  Mongoose disconnected');
+  console.log('⚠️  Mongoose disconnected from MongoDB');
+});
+
+// Log connection attempts
+mongoose.connection.on('connecting', () => {
+  console.log('🔄 Mongoose attempting to connect...');
+});
+
+mongoose.connection.on('close', () => {
+  console.log('⚠️  Mongoose connection closed');
 });
 
 module.exports = connectDB;

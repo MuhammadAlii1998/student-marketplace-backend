@@ -98,7 +98,8 @@ app.get('/api/diagnostic', async (req, res) => {
       mongoUriPrefix: process.env.MONGO_URI ? process.env.MONGO_URI.substring(0, 20) + '...' : 'NOT SET',
       databaseName: mongoose.connection.name || 'not connected',
       host: mongoose.connection.host || 'not connected',
-      port: mongoose.connection.port || 'not connected'
+      port: mongoose.connection.port || 'not connected',
+      error: mongoose.connection.error || 'none'
     },
     environmentVariables: {
       hasFrontendUrl: !!process.env.FRONTEND_URL,
@@ -111,8 +112,9 @@ app.get('/api/diagnostic', async (req, res) => {
       message: mongoose.connection.readyState === 1 
         ? 'Database connected successfully!' 
         : mongoose.connection.readyState === 2
-        ? 'Database is connecting... This usually means MongoDB Atlas is blocking the connection. Check: 1) Network Access whitelist includes 0.0.0.0/0, 2) Database user has correct permissions, 3) Cluster is not paused'
-        : 'Database is disconnected. Check MONGO_URI environment variable and MongoDB Atlas settings.'
+        ? '❌ CRITICAL: MongoDB Atlas is BLOCKING Vercel connections. You MUST: 1) Go to MongoDB Atlas → Network Access → Add IP Address → ALLOW ACCESS FROM ANYWHERE (0.0.0.0/0). 2) Wait 2-3 minutes. 3) Redeploy on Vercel. Without this, your app CANNOT work.'
+        : 'Database is disconnected. Check MONGO_URI environment variable and MongoDB Atlas settings.',
+      checkVercelLogs: 'Go to Vercel Dashboard → Deployments → Click latest → View Function Logs to see detailed connection errors'
     }
   };
   
