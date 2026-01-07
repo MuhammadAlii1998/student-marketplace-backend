@@ -96,7 +96,9 @@ app.get('/api/diagnostic', async (req, res) => {
       stateDescription: ['disconnected', 'connected', 'connecting', 'disconnecting'][mongoose.connection.readyState] || 'unknown',
       hasMongoUri: !!process.env.MONGO_URI,
       mongoUriPrefix: process.env.MONGO_URI ? process.env.MONGO_URI.substring(0, 20) + '...' : 'NOT SET',
-      databaseName: mongoose.connection.name || 'not connected'
+      databaseName: mongoose.connection.name || 'not connected',
+      host: mongoose.connection.host || 'not connected',
+      port: mongoose.connection.port || 'not connected'
     },
     environmentVariables: {
       hasFrontendUrl: !!process.env.FRONTEND_URL,
@@ -104,8 +106,25 @@ app.get('/api/diagnostic', async (req, res) => {
       hasEmailHost: !!process.env.EMAIL_HOST,
       hasEmailUser: !!process.env.EMAIL_USER,
       hasEmailPassword: !!process.env.EMAIL_PASSWORD
+    },
+    troubleshooting: {
+      message: mongoose.connection.readyState === 1 
+        ? 'Database connected successfully!' 
+        : mongoose.connection.readyState === 2
+        ? 'Database is connecting... This usually means MongoDB Atlas is blocking the connection. Check: 1) Network Access whitelist includes 0.0.0.0/0, 2) Database user has correct permissions, 3) Cluster is not paused'
+        : 'Database is disconnected. Check MONGO_URI environment variable and MongoDB Atlas settings.'
     }
   };
+  
+  // Try to perform a simple database operation to verify connection
+  if (mongoose.connection.readyState === 1) {
+    try {
+      await mongoose.connection.db.admin().ping();
+      diagnostic.databaseTest = 'Ping successful ✅';
+    } catch (err) {
+      diagnostic.databaseTest = `Ping failed: ${err.message}`;
+    }
+  }
   
   res.json(diagnostic);
 });
