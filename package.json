@@ -12,12 +12,14 @@
     "check-email": "node src/test/checkEmailConfig.js",
     "test-gmail": "node src/test/testGmailSetup.js",
     "create-indexes": "node src/scripts/createIndexes.js",
-    "delete-users": "node src/scripts/deleteAllUsers.js"
+    "delete-users": "node src/scripts/deleteAllUsers.js",
+    "list-delete-users": "node src/scripts/listAndDeleteUsers.js"
   },
   "author": "",
   "license": "MIT",
   "dependencies": {
     "bcryptjs": "^3.0.3",
+    "cloudinary": "^1.41.3",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
     "dotenv": "^16.0.0",
@@ -28,6 +30,8 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^7.0.0",
     "morgan": "^1.10.0",
+    "multer": "^2.0.2",
+    "multer-storage-cloudinary": "^4.0.0",
     "nodemailer": "^7.0.12",
     "validator": "^13.15.26"
   },

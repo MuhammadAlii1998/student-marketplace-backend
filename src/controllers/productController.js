@@ -1,5 +1,6 @@
 const Product = require('../models/product');
 const User = require('../models/user');
+const cloudinary = require('../config/cloudinary');
 
 // Helper to add isFavorite flag to products
 async function addFavoriteFlags(products, userId) {
@@ -224,6 +225,42 @@ async function getMyListings(req, res) {
   }
 }
 
+// Upload image to Cloudinary
+async function uploadImage(req, res) {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No image file provided' });
+    }
+
+    // File is already uploaded to Cloudinary by multer middleware
+    res.json({
+      message: 'Image uploaded successfully',
+      url: req.file.path,
+      publicId: req.file.filename
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+}
+
+// Delete image from Cloudinary
+async function deleteImage(req, res) {
+  try {
+    const { publicId } = req.params;
+
+    // Delete from Cloudinary
+    const result = await cloudinary.uploader.destroy(publicId);
+
+    if (result.result === 'ok') {
+      res.json({ message: 'Image deleted successfully' });
+    } else {
+      res.status(404).json({ message: 'Image not found' });
+    }
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+}
+
 module.exports = {
   getProducts,
   getProductById,
@@ -232,5 +269,7 @@ module.exports = {
   deleteProduct,
   getProductsByCategory,
   getSellerProducts,
-  getMyListings
+  getMyListings,
+  uploadImage,
+  deleteImage
 };
