@@ -35,6 +35,7 @@ const allowedOrigins = [
   'http://localhost:5174',
   'http://localhost:8082',
   'http://localhost:3000',
+  'https://esilv-marketplace.netlify.app',
   process.env.FRONTEND_URL
 ].filter(Boolean);
 
