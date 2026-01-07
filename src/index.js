@@ -108,6 +108,31 @@ app.delete('/api/admin/delete-all-users', async (req, res) => {
   }
 });
 
+// GET version for easier testing (remove in production!)
+app.get('/api/admin/delete-all-users', async (req, res) => {
+  try {
+    const User = require('./models/user');
+    
+    // Count before deletion
+    const beforeCount = await User.countDocuments();
+    
+    // Delete all users
+    const result = await User.deleteMany({});
+    
+    res.json({
+      message: 'All users deleted successfully',
+      deletedCount: result.deletedCount,
+      beforeCount,
+      afterCount: await User.countDocuments()
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Error deleting users',
+      error: error.message 
+    });
+  }
+});
+
 // Diagnostic endpoint to check MongoDB connection and environment
 app.get('/api/diagnostic', async (req, res) => {
   const mongoose = require('mongoose');
