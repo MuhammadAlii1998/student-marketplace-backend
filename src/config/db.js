@@ -5,6 +5,8 @@ async function connectDB(uri) {
   
   console.log('🔄 Attempting to connect to MongoDB...');
   console.log('📍 Connection string prefix:', mongoUri.substring(0, 30) + '...');
+  console.log('📍 Has MONGO_URI:', !!process.env.MONGO_URI);
+  console.log('📍 Environment:', process.env.NODE_ENV);
   
   try {
     await mongoose.connect(mongoUri, {
@@ -21,7 +23,11 @@ async function connectDB(uri) {
     console.error('   Error Name:', err.name);
     console.error('   Error Message:', err.message);
     console.error('   Error Code:', err.code);
-    console.error('   Full Error:', JSON.stringify(err, null, 2));
+    console.error('   Error Reason:', err.reason);
+    if (err.cause) {
+      console.error('   Error Cause:', err.cause);
+    }
+    console.error('   Stack:', err.stack);
     
     // In production (Vercel), don't exit - let the app start and show better errors
     if (process.env.NODE_ENV === 'production') {
