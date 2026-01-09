@@ -7,11 +7,12 @@ Simple Express + MongoDB backend for the Student Marketplace with **email verifi
 - 🔐 **JWT Authentication** with email verification
 - 📧 **Automated Email Verification** - Users must verify email before login
 - 🛍️ **Product Management** - CRUD operations for marketplace items
-- � **Image Upload** - Cloudinary integration for product images
-- �🛒 **Shopping Cart** - Cart management system
+- 🖼️ **Image Upload** - Cloudinary integration for product images
+- 🛒 **Shopping Cart** - Cart management system
 - 📁 **Categories** - Product categorization
 - ⭐ **Favorites** - Save favorite products
 - 👥 **User Profiles** - Student profiles with university verification
+- ⏰ **Product Reservations** - Time-limited product reservations with auto-expiry
 
 ## � Environment Setup
 

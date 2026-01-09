@@ -66,7 +66,8 @@ app.get('/', (req, res) => {
       products: '/api/products',
       auth: '/api/auth',
       categories: '/api/categories',
-      cart: '/api/cart'
+      cart: '/api/cart',
+      reservations: '/api/reservations'
     }
   });
 });
@@ -217,6 +218,7 @@ app.use('/api/products', require('./routes/products'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/categories', require('./routes/categories'));
 app.use('/api/cart', require('./routes/cart'));
+app.use('/api/reservations', require('./routes/reservations'));
 
 // Error handling - must be after routes
 const { notFound, errorHandler } = require('./middleware/errorHandler');
@@ -228,6 +230,13 @@ const server = app.listen(PORT, () => {
   console.log(`📧 Email service: ${process.env.EMAIL_HOST}`);
   console.log(`💾 Database: MongoDB Atlas`);
   console.log(`🔒 Security: Enabled (Helmet, Rate Limiting, Sanitization)`);
+  
+  // Start reservation cleanup job
+  const { startReservationCleanupJob } = require('./utils/reservationCleanup');
+  const cleanupJobId = startReservationCleanupJob();
+  
+  // Store cleanup job ID for graceful shutdown
+  app.locals.cleanupJobId = cleanupJobId;
 });
 
 // Graceful error handling for server listen errors (e.g. EADDRINUSE)
@@ -240,4 +249,35 @@ server.on('error', (err) => {
 
   console.error('Server error:', err);
   process.exit(1);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM signal received: closing HTTP server');
+  
+  // Stop reservation cleanup job
+  if (app.locals.cleanupJobId) {
+    const { stopReservationCleanupJob } = require('./utils/reservationCleanup');
+    stopReservationCleanupJob(app.locals.cleanupJobId);
+  }
+  
+  server.close(() => {
+    console.log('HTTP server closed');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('SIGINT signal received: closing HTTP server');
+  
+  // Stop reservation cleanup job
+  if (app.locals.cleanupJobId) {
+    const { stopReservationCleanupJob } = require('./utils/reservationCleanup');
+    stopReservationCleanupJob(app.locals.cleanupJobId);
+  }
+  
+  server.close(() => {
+    console.log('HTTP server closed');
+    process.exit(0);
+  });
 });
