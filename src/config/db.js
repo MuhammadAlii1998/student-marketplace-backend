@@ -1,5 +1,9 @@
 const mongoose = require('mongoose');
 
+// Set mongoose options globally before any connections
+mongoose.set('bufferTimeoutMS', 30000); // Increase buffer timeout to 30s
+mongoose.set('strictQuery', false);
+
 async function connectDB(uri) {
   const mongoUri = uri || process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/student-marketplace';
   
@@ -10,7 +14,7 @@ async function connectDB(uri) {
   
   try {
     await mongoose.connect(mongoUri, {
-      serverSelectionTimeoutMS: 30000, // Increased to 30 seconds
+      serverSelectionTimeoutMS: 30000,
       connectTimeoutMS: 30000,
       socketTimeoutMS: 45000,
       maxPoolSize: 10,

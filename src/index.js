@@ -231,12 +231,14 @@ const server = app.listen(PORT, () => {
   console.log(`💾 Database: MongoDB Atlas`);
   console.log(`🔒 Security: Enabled (Helmet, Rate Limiting, Sanitization)`);
   
-  // Start reservation cleanup job
-  const { startReservationCleanupJob } = require('./utils/reservationCleanup');
-  const cleanupJobId = startReservationCleanupJob();
-  
-  // Store cleanup job ID for graceful shutdown
-  app.locals.cleanupJobId = cleanupJobId;
+  // Start reservation cleanup job after a short delay to ensure DB is connected
+  setTimeout(() => {
+    const { startReservationCleanupJob } = require('./utils/reservationCleanup');
+    const cleanupJobId = startReservationCleanupJob();
+    
+    // Store cleanup job ID for graceful shutdown
+    app.locals.cleanupJobId = cleanupJobId;
+  }, 3000); // Wait 3 seconds for DB connection
 });
 
 // Graceful error handling for server listen errors (e.g. EADDRINUSE)
