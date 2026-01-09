@@ -313,7 +313,12 @@ async function getProductReservation(req, res) {
 
     // Validate ObjectId
     if (!mongoose.Types.ObjectId.isValid(productId)) {
-      return res.status(400).json({ message: 'Invalid product ID' });
+      // Return not reserved for invalid IDs (instead of error)
+      // This handles cases where frontend may pass non-existent product IDs
+      return res.json({ 
+        reserved: false,
+        message: 'Product is not currently reserved' 
+      });
     }
 
     const reservation = await Reservation.findActiveReservation(productId);

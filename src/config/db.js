@@ -10,9 +10,11 @@ async function connectDB(uri) {
   
   try {
     await mongoose.connect(mongoUri, {
-      serverSelectionTimeoutMS: 10000, // Fail faster - 10 seconds
-      connectTimeoutMS: 10000,
-      socketTimeoutMS: 10000,
+      serverSelectionTimeoutMS: 30000, // Increased to 30 seconds
+      connectTimeoutMS: 30000,
+      socketTimeoutMS: 45000,
+      maxPoolSize: 10,
+      minPoolSize: 5,
       family: 4 // Force IPv4
     });
     console.log('✅ MongoDB connected successfully');
