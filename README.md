@@ -13,6 +13,7 @@ Simple Express + MongoDB backend for the Student Marketplace with **email verifi
 - ⭐ **Favorites** - Save favorite products
 - 👥 **User Profiles** - Student profiles with university verification
 - ⏰ **Product Reservations** - Time-limited product reservations with auto-expiry
+- 💬 **Real-time Chat** - 1-to-1 messaging between buyers and sellers with Socket.IO
 
 ## � Environment Setup
 
@@ -174,7 +175,49 @@ CLOUDINARY_API_SECRET=your-api-secret
 - `POST /api/auth/favorites/:productId` — Add to favorites (protected)
 - `DELETE /api/auth/favorites/:productId` — Remove from favorites (protected)
 
+### Reservations
+- `POST /api/reservations` — Create/extend reservation (protected)
+- `GET /api/reservations/product/:productId` — Check if product is reserved
+- `DELETE /api/reservations/:productId` — Cancel reservation (protected)
+
+### Chat (Real-time)
+- `POST /api/chats` — Create or get existing chat (protected)
+- `GET /api/chats` — Get user's chats (protected)
+- `GET /api/chats/:id/messages` — Get chat messages with pagination (protected)
+- `DELETE /api/chats/:id` — Delete chat (protected, participants only)
+- `GET /api/chats/unread-count` — Get unread messages count (protected)
+
+#### Socket.IO Events (Real-time)
+Connect to WebSocket with JWT token:
+```javascript
+const socket = io('http://localhost:3000', {
+  auth: { token: 'your-jwt-token' }
+});
+```
+
+**Client → Server:**
+- `join_chat` - Join a chat room: `{chatId: 'chat-id'}`
+- `send_message` - Send message: `{chatId: 'chat-id', content: 'message'}`
+- `typing` - Show typing indicator: `{chatId: 'chat-id'}`
+- `stop_typing` - Hide typing indicator: `{chatId: 'chat-id'}`
+
+**Server → Client:**
+- `new_message` - Receive new message
+- `user_typing` - Other user is typing
+- `user_stop_typing` - Other user stopped typing
+- `error` - Error occurred
+
 ## 🧪 Testing
+
+### Chat System Tests
+```bash
+npm run test-chat
+```
+
+### Create Chat Indexes (TTL for auto-deletion)
+```bash
+npm run create-chat-indexes
+```
 
 ### Automated Email Verification Test
 ```bash

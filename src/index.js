@@ -1,17 +1,58 @@
 require('dotenv').config();
 const express = require('express');
+const { createServer } = require('http');
+const { Server } = require('socket.io');
 const morgan = require('morgan');
 const cors = require('cors');
 const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const connectDB = require('./config/db');
 const { apiLimiter } = require('./middleware/rateLimiter');
+const { authenticateSocket, initializeSocketHandlers } = require('./services/socketService');
 
 const app = express();
+const httpServer = createServer(app);
+
 const PORT = process.env.PORT || 3000;
 
 // Connect DB
 connectDB(process.env.MONGO_URI);
+
+// Initialize Socket.IO
+const io = new Server(httpServer, {
+  cors: {
+    origin: function (origin, callback) {
+      const allowedOrigins = [
+        'http://localhost:8080',
+        'http://localhost:8081',
+        'http://localhost:5173',
+        'http://localhost:5174',
+        'http://localhost:8082',
+        'http://localhost:3000',
+        'https://esilv-marketplace.netlify.app',
+        process.env.FRONTEND_URL
+      ].filter(Boolean);
+      
+      if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+    methods: ['GET', 'POST']
+  },
+  transports: ['websocket', 'polling']
+});
+
+// Socket.IO authentication middleware
+io.use(authenticateSocket);
+
+// Initialize Socket.IO handlers
+initializeSocketHandlers(io);
+
+// Make io accessible to routes
+app.set('io', io);
 
 // Security Middleware
 app.use(helmet()); // Set security HTTP headers
@@ -67,7 +108,8 @@ app.get('/', (req, res) => {
       auth: '/api/auth',
       categories: '/api/categories',
       cart: '/api/cart',
-      reservations: '/api/reservations'
+      reservations: '/api/reservations',
+      chats: '/api/chats'
     }
   });
 });
@@ -219,25 +261,33 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/categories', require('./routes/categories'));
 app.use('/api/cart', require('./routes/cart'));
 app.use('/api/reservations', require('./routes/reservations'));
+app.use('/api/chats', require('./routes/chats'));
 
 // Error handling - must be after routes
 const { notFound, errorHandler } = require('./middleware/errorHandler');
 app.use(notFound);
 app.use(errorHandler);
 
-const server = app.listen(PORT, () => {
+const server = httpServer.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
   console.log(`📧 Email service: ${process.env.EMAIL_HOST}`);
   console.log(`💾 Database: MongoDB Atlas`);
   console.log(`🔒 Security: Enabled (Helmet, Rate Limiting, Sanitization)`);
+  console.log(`💬 Socket.IO: Enabled for real-time chat`);
   
-  // Start reservation cleanup job after a short delay to ensure DB is connected
+  // Start cleanup jobs after a short delay to ensure DB is connected
   setTimeout(() => {
+    // Reservation cleanup job
     const { startReservationCleanupJob } = require('./utils/reservationCleanup');
-    const cleanupJobId = startReservationCleanupJob();
+    const reservationCleanupJobId = startReservationCleanupJob();
     
-    // Store cleanup job ID for graceful shutdown
-    app.locals.cleanupJobId = cleanupJobId;
+    // Chat cleanup job (runs every hour)
+    const { startChatCleanupJob } = require('./utils/chatCleanup');
+    const chatCleanupJobId = startChatCleanupJob();
+    
+    // Store cleanup job IDs for graceful shutdown
+    app.locals.reservationCleanupJobId = reservationCleanupJobId;
+    app.locals.chatCleanupJobId = chatCleanupJobId;
   }, 3000); // Wait 3 seconds for DB connection
 });
 
@@ -257,10 +307,15 @@ server.on('error', (err) => {
 process.on('SIGTERM', () => {
   console.log('SIGTERM signal received: closing HTTP server');
   
-  // Stop reservation cleanup job
-  if (app.locals.cleanupJobId) {
+  // Stop cleanup jobs
+  if (app.locals.reservationCleanupJobId) {
     const { stopReservationCleanupJob } = require('./utils/reservationCleanup');
-    stopReservationCleanupJob(app.locals.cleanupJobId);
+    stopReservationCleanupJob(app.locals.reservationCleanupJobId);
+  }
+  
+  if (app.locals.chatCleanupJobId) {
+    const { stopChatCleanupJob } = require('./utils/chatCleanup');
+    stopChatCleanupJob(app.locals.chatCleanupJobId);
   }
   
   server.close(() => {
@@ -272,10 +327,15 @@ process.on('SIGTERM', () => {
 process.on('SIGINT', () => {
   console.log('SIGINT signal received: closing HTTP server');
   
-  // Stop reservation cleanup job
-  if (app.locals.cleanupJobId) {
+  // Stop cleanup jobs
+  if (app.locals.reservationCleanupJobId) {
     const { stopReservationCleanupJob } = require('./utils/reservationCleanup');
-    stopReservationCleanupJob(app.locals.cleanupJobId);
+    stopReservationCleanupJob(app.locals.reservationCleanupJobId);
+  }
+  
+  if (app.locals.chatCleanupJobId) {
+    const { stopChatCleanupJob } = require('./utils/chatCleanup');
+    stopChatCleanupJob(app.locals.chatCleanupJobId);
   }
   
   server.close(() => {

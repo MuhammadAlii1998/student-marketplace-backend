@@ -12,8 +12,10 @@
     "check-email": "node src/test/checkEmailConfig.js",
     "test-gmail": "node src/test/testGmailSetup.js",
     "test-reservations": "node src/test/reservationTest.js",
+    "test-chat": "node src/test/chatTest.js",
     "create-indexes": "node src/scripts/createIndexes.js",
     "create-reservation-indexes": "node src/scripts/createReservationIndexes.js",
+    "create-chat-indexes": "node src/scripts/createChatIndexes.js",
     "delete-users": "node src/scripts/deleteAllUsers.js",
     "list-delete-users": "node src/scripts/listAndDeleteUsers.js"
   },
@@ -35,10 +37,12 @@
     "multer": "^2.0.2",
     "multer-storage-cloudinary": "^4.0.0",
     "nodemailer": "^7.0.12",
+    "socket.io": "^4.8.3",
     "validator": "^13.15.26"
   },
   "devDependencies": {
     "node-fetch": "^3.3.2",
-    "nodemon": "^3.1.11"
+    "nodemon": "^3.1.11",
+    "socket.io-client": "^4.8.3"
   }
 }
