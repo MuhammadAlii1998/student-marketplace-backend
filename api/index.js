@@ -88,9 +88,10 @@ app.get('/', (req, res) => {
       auth: '/api/auth',
       categories: '/api/categories',
       cart: '/api/cart',
-      reservations: '/api/reservations'
+      reservations: '/api/reservations',
+      chats: '/api/chats'
     },
-    note: 'Socket.IO chat is not available in serverless deployment'
+    note: 'Chat REST API is available. Real-time WebSocket features require polling or alternative implementation.'
   });
 });
 
@@ -161,8 +162,8 @@ app.use('/api/categories', require('../src/routes/categories'));
 app.use('/api/cart', require('../src/routes/cart'));
 app.use('/api/reservations', require('../src/routes/reservations'));
 
-// Note: Chat routes disabled for serverless (requires WebSocket support)
-// app.use('/api/chats', require('../src/routes/chats'));
+// Chat routes - REST API endpoints work in serverless (WebSocket handled by frontend polling)
+app.use('/api/chats', require('../src/routes/chats'));
 
 // Error handling - must be after routes
 const { notFound, errorHandler } = require('../src/middleware/errorHandler');
