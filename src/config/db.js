@@ -1,10 +1,19 @@
 const mongoose = require('mongoose');
 
 // Set mongoose options globally before any connections
-mongoose.set('bufferTimeoutMS', 30000); // Increase buffer timeout to 30s
+mongoose.set('bufferTimeoutMS', 20000); // Buffer timeout for serverless
 mongoose.set('strictQuery', false);
 
+// Global connection cache for serverless (Vercel)
+let cachedConnection = null;
+
 async function connectDB(uri) {
+  // Return cached connection if available (important for serverless)
+  if (cachedConnection && mongoose.connection.readyState === 1) {
+    console.log('♻️  Using cached MongoDB connection');
+    return cachedConnection;
+  }
+
   const mongoUri = uri || process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/student-marketplace';
   
   console.log('🔄 Attempting to connect to MongoDB...');
@@ -13,17 +22,24 @@ async function connectDB(uri) {
   console.log('📍 Environment:', process.env.NODE_ENV);
   
   try {
-    await mongoose.connect(mongoUri, {
-      serverSelectionTimeoutMS: 30000,
-      connectTimeoutMS: 30000,
-      socketTimeoutMS: 45000,
-      maxPoolSize: 10,
-      minPoolSize: 5,
+    // Optimized for serverless (Vercel)
+    const connection = await mongoose.connect(mongoUri, {
+      serverSelectionTimeoutMS: 10000, // Reduced for serverless
+      connectTimeoutMS: 10000,
+      socketTimeoutMS: 20000,
+      maxPoolSize: process.env.NODE_ENV === 'production' ? 1 : 10, // 1 for serverless
+      minPoolSize: process.env.NODE_ENV === 'production' ? 1 : 5,
       family: 4 // Force IPv4
     });
+    
+    cachedConnection = connection;
+    
+    cachedConnection = connection;
     console.log('✅ MongoDB connected successfully');
     console.log(`📍 Database: ${mongoose.connection.name}`);
     console.log(`📍 Host: ${mongoose.connection.host}`);
+    
+    return connection;
   } catch (err) {
     console.error('❌ MongoDB Connection Error Details:');
     console.error('   Error Name:', err.name);
