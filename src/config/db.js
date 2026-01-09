@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 // Set mongoose options globally before any connections
-mongoose.set('bufferTimeoutMS', 20000); // Buffer timeout for serverless
+mongoose.set('bufferTimeoutMS', 30000); // Increased for Vercel cold starts
 mongoose.set('strictQuery', false);
 
 // Global connection cache for serverless (Vercel)
@@ -24,17 +24,17 @@ async function connectDB(uri) {
   try {
     // Optimized for serverless (Vercel)
     const connection = await mongoose.connect(mongoUri, {
-      serverSelectionTimeoutMS: 10000, // Reduced for serverless
-      connectTimeoutMS: 10000,
-      socketTimeoutMS: 20000,
-      maxPoolSize: process.env.NODE_ENV === 'production' ? 1 : 10, // 1 for serverless
-      minPoolSize: process.env.NODE_ENV === 'production' ? 1 : 5,
+      serverSelectionTimeoutMS: 30000, // Increased timeout for Vercel
+      connectTimeoutMS: 30000,
+      socketTimeoutMS: 45000,
+      maxPoolSize: 1, // Keep at 1 for serverless
+      minPoolSize: 0,
+      maxIdleTimeMS: 10000,
       family: 4 // Force IPv4
     });
     
     cachedConnection = connection;
     
-    cachedConnection = connection;
     console.log('✅ MongoDB connected successfully');
     console.log(`📍 Database: ${mongoose.connection.name}`);
     console.log(`📍 Host: ${mongoose.connection.host}`);
@@ -51,11 +51,11 @@ async function connectDB(uri) {
     }
     console.error('   Stack:', err.stack);
     
-    // In production (Vercel), don't exit - let the app start and show better errors
+    // In production (Vercel), throw the error so middleware can handle it
     if (process.env.NODE_ENV === 'production') {
-      console.error('⚠️  Running without database connection.');
       console.error('⚠️  CRITICAL: MongoDB Atlas is not accessible from Vercel.');
       console.error('⚠️  ACTION REQUIRED: Add 0.0.0.0/0 to Network Access in MongoDB Atlas');
+      throw err; // Let the calling code handle this
     } else {
       process.exit(1);
     }
