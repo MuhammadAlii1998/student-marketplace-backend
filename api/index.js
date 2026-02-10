@@ -41,6 +41,8 @@ const corsOptions = {
       'http://localhost:8082',
       'http://localhost:3000',
       'https://esilv-marketplace.netlify.app',
+      'https://esilv.store',
+      'https://www.esilv.store',
       process.env.FRONTEND_URL
     ].filter(Boolean);
     
